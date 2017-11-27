@@ -6,7 +6,7 @@
   result)
 
 (defmacro plet [bindings & body]
-  (let [bents (partition 2 bindings)
+  (let [bents (partition 2 (destructure bindings))
         smap (into {} (map (fn [[b _]]
                              [b `(deref ~b)])
                            bents))
@@ -17,7 +17,7 @@
        ~@(postwalk-replace smap body))))
 
 (time
- (let [a (remote-req 1)
+ (let [{:keys [a]} (remote-req {:a 1 :x 2})
        b (remote-req 1)
        c (+ a b)
        d (remote-req 1)
@@ -27,7 +27,7 @@
 ;; "Elapsed time: 4007.60237 msecs"
 
 (time
- (plet [a (remote-req 1)
+ (plet [{:keys [a]} (remote-req {:a 1 :x 2})
         b (remote-req 1)
         c (+ a b)
         d (remote-req 1)
