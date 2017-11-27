@@ -1,13 +1,12 @@
 (ns plet.core
-  (:require [clojure.walk :refer [postwalk-replace]]
-            [clojure.core.async :refer [go <!! <! timeout]]))
+  (:require [clojure.walk :refer [postwalk-replace]]))
 
 (defn remote-req [result]
   (Thread/sleep 1000)
   result)
 
 (defmacro plet [bindings & body]
-  (let [bents (partition 2 bindings)
+  (let [bents (partition 2 (destructure bindings))
         smap (into {} (map (fn [[b _]]
                              [b `(deref ~b)])
                            bents))
@@ -18,7 +17,7 @@
        ~@(postwalk-replace smap body))))
 
 (time
- (let [a (remote-req 1)
+ (let [{:keys [a]} (remote-req {:a 1 :x 2})
        b (remote-req 1)
        c (+ a b)
        d (remote-req 1)
@@ -27,7 +26,7 @@
    (+ c f)))
 
 (time
- (plet [a (remote-req 1)
+ (plet [{:keys [a]} (remote-req {:a 1 :x 2})
         b (remote-req 1)
         c (+ a b)
         d (remote-req 1)
